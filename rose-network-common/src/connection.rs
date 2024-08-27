@@ -95,7 +95,7 @@ impl<'a> Connection<'a> {
         buffer.put_u16_le(packet.command);
         buffer.put_u16_le(0);
         buffer.put(packet.data);
-        self.packet_codec.encrypt_packet(&mut buffer);
+        // self.packet_codec.encrypt_packet(&mut buffer);
 
         self.stream
             .write_all(&buffer)

@@ -309,28 +309,28 @@ impl DecodeHead for HeadCryptedClient {
     }
 
     fn decode_main(&self, head: &mut Head) {
-        let mut a = HeadDecrypted::from_bytes(head.into_bytes());
-        a.set_add_buffer_len1(self.add_buffer_len1());
-        a.set_add_buffer_len2(self.add_buffer_len2());
-        a.set_add_buffer_len3(self.add_buffer_len3());
-        a.set_add_buffer_len4(self.add_buffer_len4());
-        a.set_command1(self.command1());
-        a.set_command2(self.command2());
-        a.set_command3(self.command3());
-        a.set_command4(self.command4());
-        a.set_encrypt_value1(self.encrypt_value1());
-        a.set_encrypt_add_value1(self.encrypt_add_value1());
-        a.set_encrypt_add_value2(self.encrypt_add_value2());
-        *head = Head::from_bytes(a.into_bytes());
+        // let mut a = HeadDecrypted::from_bytes(head.into_bytes());
+        // a.set_add_buffer_len1(self.add_buffer_len1());
+        // a.set_add_buffer_len2(self.add_buffer_len2());
+        // a.set_add_buffer_len3(self.add_buffer_len3());
+        // a.set_add_buffer_len4(self.add_buffer_len4());
+        // a.set_command1(self.command1());
+        // a.set_command2(self.command2());
+        // a.set_command3(self.command3());
+        // a.set_command4(self.command4());
+        // a.set_encrypt_value1(self.encrypt_value1());
+        // a.set_encrypt_add_value1(self.encrypt_add_value1());
+        // a.set_encrypt_add_value2(self.encrypt_add_value2());
+        // *head = Head::from_bytes(a.into_bytes());
     }
 
     fn decode_final(&self, head: &mut Head) {
-        let mut a = HeadDecrypted::from_bytes(head.into_bytes());
-        a.set_add_table_value1(self.add_table_value1());
-        a.set_add_table_value2(self.add_table_value2());
-        a.set_add_table_value3(self.add_table_value3());
-        a.set_add_table_value4(self.add_table_value4());
-        *head = Head::from_bytes(a.into_bytes());
+        // let mut a = HeadDecrypted::from_bytes(head.into_bytes());
+        // a.set_add_table_value1(self.add_table_value1());
+        // a.set_add_table_value2(self.add_table_value2());
+        // a.set_add_table_value3(self.add_table_value3());
+        // a.set_add_table_value4(self.add_table_value4());
+        // *head = Head::from_bytes(a.into_bytes());
     }
 }
 
@@ -436,44 +436,48 @@ where
     }
 
     fn decrypt_packet_header(&self, buffer: &mut BytesMut) -> usize {
-        let mut head = Head::new();
-        D::from_header_bytes(buffer[0..5].try_into().unwrap()).decode_final(&mut head);
-        let add_table_value = head.add_table_value();
+        // je comprends rien à ce que je fais youhou :D
+        let mut head = Head::from_bytes(buffer[0..5].try_into().unwrap());
 
-        for i in 0..5 {
-            buffer[i] ^= self.table[i * 2048 + add_table_value as usize] as u8;
-        }
-
-        D::from_header_bytes(buffer[0..5].try_into().unwrap()).decode_main(&mut head);
-
-        buffer[0..5].copy_from_slice(&head.into_bytes());
         head.add_buffer_len() as usize
+
+        // D::from_header_bytes(buffer[0..5].try_into().unwrap()).decode_final(&mut head);
+        // let add_table_value = head.add_table_value();
+        //
+        // for i in 0..5 {
+        //     buffer[i] ^= self.table[i * 2048 + add_table_value as usize] as u8;
+        // }
+        //
+        // D::from_header_bytes(buffer[0..5].try_into().unwrap()).decode_main(&mut head);
+        //
+        // buffer[0..5].copy_from_slice(&head.into_bytes());
+        // head.add_buffer_len() as usize
     }
 
     fn decrypt_packet_body(&self, buffer: &mut BytesMut) -> bool {
-        let head = Head::from_bytes(buffer[0..5].try_into().unwrap());
-        let mut checksum: u8 = 0;
-        for i in 0..5 {
-            checksum = self.crc_table[(buffer[i] ^ checksum) as usize];
-        }
+        // let head = Head::from_bytes(buffer[0..5].try_into().unwrap());
+        // let mut checksum: u8 = 0;
+        // for i in 0..5 {
+        //     checksum = self.crc_table[(buffer[i] ^ checksum) as usize];
+        // }
 
-        let add_buffer_len = head.add_buffer_len() as usize;
-        let encrypt_add_value = head.encrypt_add_value() as usize;
-        let add_table_value = head.add_table_value() as usize;
-        let data_length = add_buffer_len - head.encrypt_value() as usize;
-        for i in 6..data_length {
-            let table_start = ((encrypt_add_value + i) & 0xF) * 2048;
-            let table_offset = (add_table_value + i) & 0x7FF;
-            buffer[i] ^= self.table[table_start + table_offset] as u8;
-            checksum = self.crc_table[(buffer[i] ^ checksum) as usize];
-        }
+        // let add_buffer_len = head.add_buffer_len() as usize;
+        // let encrypt_add_value = head.encrypt_add_value() as usize;
+        // let add_table_value = head.add_table_value() as usize;
+        // let data_length = add_buffer_len - head.encrypt_value() as usize;
+        // for i in 6..data_length {
+        //     let table_start = ((encrypt_add_value + i) & 0xF) * 2048;
+        //     let table_offset = (add_table_value + i) & 0x7FF;
+        //     buffer[i] ^= self.table[table_start + table_offset] as u8;
+        //     checksum = self.crc_table[(buffer[i] ^ checksum) as usize];
+        // }
 
-        if buffer[5] != checksum {
-            return false;
-        }
+        // if buffer[5] != checksum {
+        //     return false;
+        // }
 
-        buffer[0..2].copy_from_slice(&data_length.to_le_bytes()[0..2]);
-        buffer[2..4].copy_from_slice(&head.command().to_le_bytes()[0..2]);
+        // buffer[0..2].copy_from_slice(&data_length.to_le_bytes()[0..2]);
+        // buffer[2..4].copy_from_slice(&head.command().to_le_bytes()[0..2]);
         true
     }
 }
